@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Pen Survey</title>
+    <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="stylesheets/surveys.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+    <div class="screener hidden"></div>
+    <div class="login-popup hidden">
+        <i class="fa fa-times close fa-2x" aria-hidden="true"></i>
+        <h1>Enter your username and password to login</h1>
+        <input class="email-login" placeholder="E-mail" />
+        <input class="password-login" type="password" placeholder="Password" />
+        <button class="login-button">Log In</button><p class="login-error hidden">Invalid Credentials</p>
+    </div>
+    <div class="header">
+        <br />
+        <a href="/" class="logo">Pen Survey</a>
+        <a href="/createSurvey" class="createSurvey">Create Survey</a>
+        <a class="login">Login</a>
+        <a href="/register" class="register">Register</a>
+    </div>
+    <div class="survey-list">
+    </div>
+
+
+</body>
+
+
+</html>
+<script src="https://code.jquery.com/jquery-3.2.1.js"
+        integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+        crossorigin="anonymous">
+</script>
+
+<script>
+    var checkLogin = function () {
+        $.getJSON("/checkLogin", (data) => {         //CHANGE AFTER HOST
+            if (data.status == true) {
+                login(data.name);
+            }
+        });
+    }
+    var login = function (username) {
+        $(".screener").addClass("hidden");
+        $(".login-popup").addClass("hidden");
+        $(".register").html("Log Out");
+        $(".register").attr("href", "/logout");
+        $(".login").html("My Surveys");
+        $(".login").attr("href", "/mysurveys");
+
+    }
+    var attemptLogin = function () {
+        var Email = $(".email-login").val();
+        var Password = $(".password-login").val();
+        $.post("/login", { email: Email, password: Password }, (data, success) => {
+            if (data.status) {
+                $(".login-error").addClass("hidden");
+                login(data.user);
+                userid = data.id;
+            }
+            else {
+                $(".login-error").removeClass("hidden");
+            }
+        });
+    }
+    var SelectSurvey = function (id)
+    {
+        window.location = "/survey?id=" + id;
+    }
+    var createSurveyBox = function (survey) {
+        $(".survey-list").append('<div class="survey-box" onclick="SelectSurvey(\'' + survey._id + '\');"> <h1>' + survey.question + '</h1 ><p>' + survey.totalVotes + '</p> <i class="fa fa-angle-double-up fa-3x" aria-hidden="true"></i></div >');
+    };
+    $(document).ready(() => {
+        checkLogin();
+        $(".login").click(() => {
+            $(".screener").removeClass("hidden");
+            $(".login-popup").removeClass("hidden");
+        });
+        $(".close").click(() => {
+            $(".screener").addClass("hidden");
+            $(".login-popup").addClass("hidden");
+        });
+        $(".login-button").click(() => {
+            attemptLogin();
+        });
+        $(".email-login").keypress((event) => {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                attemptLogin();
+            }
+        });
+        $(".password-login").keypress((event) => {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                attemptLogin();
+            }
+        });
+        $.getJSON("/mySurveysAPI", (data) => {
+            data.forEach((survey) => {
+                console.log(survey);
+                createSurveyBox(survey);
+            });
+        });
+    });
+</script>

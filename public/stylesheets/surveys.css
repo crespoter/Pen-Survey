@@ -1,0 +1,203 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    height: 100vh;
+    margin: 0px;
+}
+
+body {
+    height: 100vh;
+    background-color: #eef;
+    margin: 0px;
+}
+
+.header {
+    height: 12%;
+    background-color: black;
+}
+
+.logo {
+    display: inline-block;
+    color: white;
+    text-decoration: none;
+    font-size: 30px;
+    font-family: 'Kaushan Script', cursive;
+}
+
+.logo:hover {
+    text-shadow: 0px 0px 30px white;
+}
+.createSurvey {
+    display: inline-block;
+    color: white;
+    border-left: solid;
+    margin-left: 25%;
+    padding-left: 5%;
+    text-decoration: none;
+    font-size: 3vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .createSurvey:hover {
+        text-shadow: 0px 0px 30px white;
+    }
+
+.login {
+    display: inline-block;
+    color: white;
+    border-left: solid;
+    margin-left: 5%;
+    padding-left: 5%;
+    text-decoration: none;
+    font-size: 3vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.login:hover {
+    text-shadow: 0px 0px 30px white;
+    cursor:pointer;
+}
+
+.register {
+    display: inline-block;
+    color: white;
+    border-left: solid;
+    margin-left: 5%;
+    padding-left: 5%;
+    text-decoration: none;
+    font-size: 3vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.register:hover {
+    text-shadow: 0px 0px 30px white;
+}
+.screener {
+    height: 100%;
+    width: 100%;
+    background-color: black;
+    position: absolute;
+    opacity: 0.8;
+    z-index: 1;
+}
+
+.login-popup {
+    height: 40%;
+    width: 60%;
+    background-color: #eef;
+    position: absolute;
+    z-index: 2;
+    margin-left: 15%;
+    margin-top: 5%;
+    border-radius: 2%;
+}
+
+    .login-popup h1 {
+        margin-left: 5%;
+        font-family: 'Roboto', sans-serif;
+    }
+
+.email-login {
+    display: block;
+    width: 50%;
+    height: 10%;
+    margin-top: 5%;
+    margin-left: 10%;
+    border-radius: 5%;
+}
+
+.password-login {
+    display: block;
+    width: 50%;
+    height: 10%;
+    margin-top: 2%;
+    margin-left: 10%;
+    border-radius: 5%;
+}
+
+.login-popup p {
+    font-family: 'Roboto', sans-serif;
+    margin-top: 5%;
+    margin-left: 10%;
+}
+
+.login-button {
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    padding: 1% 2%;
+    width: 20%;
+    margin-top: 1%;
+    margin-left: 10%;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1.5vh;
+}
+
+.login-button:hover {
+    box-shadow: 0px 0px 20px green;
+}
+
+.login-error {
+    display: inline;
+    color: red;
+    font-family: 'Roboto', sans-serif;
+}
+.survey-box {
+    border: none;
+    background-color: white;
+    color: black;
+    padding: 1% 2%;
+    font-family: 'Poppins', sans-serif;
+    width: 80%;
+    margin-top: 1%;
+    margin-left: 2%;
+    text-align: left;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 0 5px black;
+    font-size: 1.5vh;
+    overflow:hidden;
+    height:10%;
+    transition-duration:0.2s;
+}
+.survey-box:hover {
+    box-shadow: 0 0 20px black;
+    transition-duration: 0.2s;
+    cursor:pointer;
+}
+.survey-box:first-child{
+    margin-top:4%
+}
+survey-box h1{
+    display:inline;
+}
+.survey-box i{
+    display:inline;
+    float:right;
+}
+.survey-box p {
+    margin-right: 5%;
+    font-family: 'Poppins', sans-serif;
+    margin-top:0.1%;
+    margin-left:0.5%;   
+    font-size:1.5vw;
+    float: right;
+}
+.close{
+    margin-left:90%;
+    color:blue;
+    transition-duration:0.2s;
+}
+.close:hover {
+    color: red;
+    transition-duration: 0.2s;
+    cursor:pointer;
+}
+.hidden {
+    display: none;
+}

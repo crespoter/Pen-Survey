@@ -1,0 +1,119 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    height: 100vh;
+    overflow: hidden;
+    margin:0px;
+}
+body {
+    height: 100vh;
+    background-color: #663399;
+    margin: 0px;
+}
+.box-header {
+    font-family: 'Kaushan Script', cursive;
+    font-size: 3.5vw;
+    color: white;
+    margin-left: 35%;
+}
+.register-form
+{
+    height:30%;
+}
+.register-box {
+    background-color: #13C4A3;
+    height: 80%;
+    margin-top:2.5%;
+    width: 60%;
+    border-radius: 20px;
+    margin-left:20%;
+    box-shadow: 0 0 5px blue;
+}
+.input-box {
+    margin-left: 25%;
+    margin-top: 3%;
+    width: 40%;
+    height: 30%;
+    border-radius: 10px;
+    text-align: center;
+    border-style: solid;
+    border-width: 2px;
+    font-family: 'Lemonada', cursive;
+    font-size:1.0vw;
+    border-color:white;
+    transition-duration:0.3s;
+}
+.input-box:focus{
+    transition-duration:0.3s;
+    border-color:green;
+}
+.submit-input {
+    width: 25%;
+    height: 25%;
+    margin-left: 33%;
+    margin-top: 5%;
+    background-color: #7FFF00;
+    border-radius: 10px;
+    font-family: 'Lemonada', cursive;
+    font-size: 1.0vw;
+    border-color:white;
+    transition-duration:0.2s;
+}
+.submit-input:hover{
+    border-color:green;
+    transition-duration:0.2s;
+}
+.tick {
+    color: green;
+    margin-left:2%;
+}
+
+.alert
+{
+    display:inline;
+    font-size:0.8vw;
+}
+.alert p{
+    display:inline;
+    color:red;
+}
+.hidden 
+{
+    display: none;
+}
+.invalid-form
+{
+    border-color:red;
+}
+.overlay{
+    position:fixed;
+    height:100%;
+    width:100%;
+    background-color: rgba(255,255,255,0.6);
+    margin-top:-40.65%;
+    z-index:1;
+}
+.overlay-message {
+    height: 30%;
+    width: 60%;
+    background-color: #13C4A3;
+    opacity: 1;
+    z-index: 5;
+    border-radius: 5%;
+    margin-left: 20%;
+    margin-top: 10%;
+    border: 2px;
+    border-style: solid;
+    border-color: #444;
+    font-family: 'Lemonada', cursive;
+}
+.overlay-message form button{
+    margin-top:8%;
+    margin-left:30%;
+    width:30%;
+    height:20%;
+    background-color:#55C211;
+    border-radius:5%;
+}
