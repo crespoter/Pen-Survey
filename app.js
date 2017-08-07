@@ -143,7 +143,7 @@ app.get('/verify/:userid', (req, res) => {
             if (err || results.length <= 0) {
                 res.send(404, "Something unexpected happened. Please try at a later time ");
             }
-            res.send("<h1>Successfully Registered</h1><br /><a href='localhost:3000'>Click here to go to home page</a>");//CHANGE AFTER HOSTING
+            res.send("<h1>Successfully Registered</h1><br /><a href='/'>Click here to go to home page</a>");
         });
     }
 });

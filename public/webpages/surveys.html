@@ -43,7 +43,7 @@
 
 <script>
     var checkLogin = function () {
-        $.getJSON("/checkLogin", (data) => {         //CHANGE AFTER HOST
+        $.getJSON("/checkLogin", (data) => { 
             if (data.status == true) {
                 login(data.name);
             }
