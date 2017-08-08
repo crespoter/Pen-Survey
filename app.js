@@ -98,28 +98,25 @@ app.get('/validateUser', (req, res) => {
         retJson = {
             success: true
         }
-        db.collection("pendingUser").find({ name: req.query.username }).toArray((err, results) => {
-            if (err)
+
+        var mailOptions = {
+            from: "pensurvey.crespoter@gmail.com",
+            to: pendingVisitor.email,
+            subject: "Confirm your account at Pen Survey",
+            html: "<h1>Confirm your account at Pen survey by clicking on the link</h1><a href='https://mighty-badlands-58553.herokuapp.com/verify/" + pendingVisitor._id + "'>Click Here</a>"//CHANGE AFTER HOSTING
+        }
+
+        transpoter.sendMail(mailOptions, (error, info) => {
+            if (error)
             {
                 retJson.success = false;
                 res.json(retJson);
+                console.log(error);
             }
-            var mailOptions = {
-                from: "pensurvey.crespoter@gmail.com",
-                to: pendingVisitor.email,
-                subject: "Confirm your account at Pen Survey",
-                html: "<h1>Confirm your account at Pen survey by clicking on the link</h1><a href='localhost:3000/verify/" + results[0]._id+"'>Click Here</a>"//CHANGE AFTER HOSTING
+            else {
+                res.json(retJson);
             }
-            transpoter.sendMail(mailOptions, (error, info) => {
-                if (error)
-                {
-                    retJson.success = false;
-                    res.json(retJson);
-                }
-            });
         });
-        
-        res.json(retJson);
     }
 });
 app.get('/verify/:userid', (req, res) => {
