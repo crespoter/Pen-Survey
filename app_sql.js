@@ -4,14 +4,9 @@ var nodemailer = require('nodemailer');
 var session = require('express-session');
 var mysql = require('mysql');
 
-var transpoter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "pensurvey.crespoter@gmail.com",
-        pass: "blanserver"
-    }
-});
 var app = express();
+const  pageSize = 10;
+
 app.set('view engine', 'pug');
 app.use(session({
     secret: "crespotersLittleSecret",
@@ -19,6 +14,8 @@ app.use(session({
     saveUninitialized: true
 }));
 app.use(bodyparser.json());
+
+
 app.use(bodyparser.urlencoded({
     extended: true
 }));
@@ -30,8 +27,10 @@ var con = mysql.createConnection({
     host: "127.0.0.1",
     user: "root",
     password: "root",
-    port: 3306
+    port: 3306,
+    database:"pensurvey"
 });
+
 con.connect(function (err) {
     if (err) throw err;
     console.log("SQL DATABASE CONNECTED");
@@ -39,8 +38,6 @@ con.connect(function (err) {
         console.log("listening to port " + (process.env.PORT | 3000));
     });
 });
-
-
 
 app.get('/', (req, res) => {
     ssn = req.session;
@@ -59,6 +56,37 @@ app.get('/register', (req, res) => {
     }
     res.sendFile("webpages/register.html", { root: 'public' });
 });
+
+
+app.get("/api/getquestionnaire/:userid", (req, res) => {
+
+    var sql = "SELECT * FROM questionnaire WHERE creator_id = " + req.params.userid;
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+app.get("/api/getquestions/:id",(req, res)=>{
+    var sql = "SELECT * FROM question WHERE questionnaire_id = " + req.params.id;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    });
+});
+
+app.get("/api/getchoices/:id", (req, res) => {
+    var sql = "SELECT * FROM choices WHERE question_id = " + req.params.id;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    })
+});
+
+
+
 
 /*
 app.get('/validateUser', (req, res) => {
