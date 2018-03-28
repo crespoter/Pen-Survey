@@ -13,21 +13,25 @@
 
 </head>
 <body>
+
     <div class="header">
         <br />
         <a href="/" class="logo">Pen Survey</a>
-        <a class="login">Login</a>
-        <a href="/createSurvey" class="createSurvey">Create Survey</a>
-        <a href="/register" class="register">Register</a>
+        <a class="login active" href="/">Active Surveys</a>
+        <a class="expiredsurveys" href="/expiredsurveys">Expired Surveys</a>
+        <a href="/drafts" class="createSurvey menu cf">Drafts</a>
+        <a href="/logout" class="register">Logout</a>
     </div>
     <div class="survey-list">
+        <% questionnaires.forEach(function(questionnaire){  %>
+            <div class="survey-box" onclick="SelectSurvey('\<%= questionnaire.idquestionnaire %>\');"> <h1> <%= questionnaire.title %> </h1 ><p><%= questionnaire.timestamppost.toDateString() %></p><p> <%= questionnaire.note %> </p></div >;
+        <% })  %>
+        
     </div>
-
-
 </body>
-
-
 </html>
+
+
 <script src="https://code.jquery.com/jquery-3.2.1.js"
         integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
         crossorigin="anonymous">
@@ -38,15 +42,4 @@
     {
         window.location = "/survey?id=" + id;
     }
-    var createSurveyBox = function (survey) {
-        $(".survey-list").append('<div class="survey-box" onclick="SelectSurvey(\'' + survey._id + '\');"> <h1>' + survey.question + '</h1 ><p>' + survey.totalVotes + '</p> <i class="fa fa-angle-double-up fa-3x" aria-hidden="true"></i></div >');
-    };
-    $(document).ready(() => {
-        
-        $.getJSON("/mySurveysAPI", (data) => {
-            data.forEach((survey) => {
-                createSurveyBox(survey);
-            });
-        });
-    });
 </script>

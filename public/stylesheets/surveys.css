@@ -34,7 +34,7 @@ body {
     display: inline-block;
     color: white;
     border-left: solid;
-    margin-left: 25%;
+    margin-left: 5%;
     padding-left: 5%;
     text-decoration: none;
     font-size: 3vh;
@@ -56,11 +56,27 @@ body {
     font-family: 'Poppins', sans-serif;
 }
 
+
 .login:hover {
     text-shadow: 0px 0px 30px white;
     cursor:pointer;
 }
 
+.expiredsurveys {
+    display: inline-block;
+    color: white;
+    border-left: solid;
+    margin-left: 5%;
+    padding-left: 5%;
+    text-decoration: none;
+    font-size: 3vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .expiredsurveys:hover {
+        text-shadow: 0px 0px 30px white;
+        cursor: pointer;
+    }
 .register {
     display: inline-block;
     color: white;
@@ -200,4 +216,9 @@ survey-box h1{
 }
 .hidden {
     display: none;
+}
+
+
+.active {
+    text-shadow: 0 0 5px #FF0000, 0 0 10px #0000FF;
 }

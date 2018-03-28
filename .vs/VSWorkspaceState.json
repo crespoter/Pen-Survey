@@ -2,8 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\public",
-    "\\routes",
-    "\\views"
+    "\\public\\stylesheets",
+    "\\public\\webpages\\js",
+    "\\views\\pages"
   ],
   "SelectedNode": "\\app_sql.js",
   "PreviewInSolutionExplorer": false
