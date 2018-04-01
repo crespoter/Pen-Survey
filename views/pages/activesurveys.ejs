@@ -24,9 +24,9 @@
     </div>
     <div class="survey-list">
         <% questionnaires.forEach(function(questionnaire){  %>
-            <div class="survey-box" onclick="SelectSurvey('\<%= questionnaire.idquestionnaire %>\');"> <h1> <%= questionnaire.title %> </h1 ><p><%= questionnaire.timestamppost.toDateString() %></p><p> <%= questionnaire.note %> </p></div >;
+            <div class="survey-box" onclick="SelectSurvey('<%=questionnaire.idquestionnaire%>');"> <h1> <%= questionnaire.title %> </h1 ><p><%= questionnaire.timestamppost.toDateString() %></p><p> <%= questionnaire.note %> </p></div >;
         <% })  %>
-        
+			
     </div>
 </body>
 </html>
@@ -40,6 +40,7 @@
 <script>
     var SelectSurvey = function (id)
     {
-        window.location = "/survey?id=" + id;
+		console.log(id);
+        window.location = "/activesurveydetails?id=" + id;
     }
 </script>

@@ -3,7 +3,8 @@
     "",
     "\\public",
     "\\public\\stylesheets",
-    "\\public\\webpages\\js",
+    "\\public\\webpages",
+    "\\views",
     "\\views\\pages"
   ],
   "SelectedNode": "\\app_sql.js",

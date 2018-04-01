@@ -39,8 +39,8 @@ var con = mysql.createConnection({
 con.connect(function (err) {
     if (err) throw err;
     console.log("SQL DATABASE CONNECTED");
-    app.listen(process.env.PORT | 3000,'0.0.0.0', () => {
-        console.log("listening to port " + (process.env.PORT | 3000));
+    app.listen(process.env.PORT | 80,'0.0.0.0', () => {
+        console.log("listening to port " + (process.env.PORT | 80));
     });
 });
 
@@ -93,6 +93,55 @@ app.post('/', (req, res) => {
 });
 
 
+app.get('/activesurveydetails', (req, res) => {
+    ssn = req.session;
+    var retJSON = {};
+    if (ssn.userLoggedin) {
+        var sql = "SELECT * FROM questionnaire WHERE idquestionnaire=" + req.query.id + " AND creator_id=" + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            retJSON.id = result[0].idquestionnaire;
+            retJSON.title = result[0].title;
+            retJSON.datetime = result[0].timestamppost;
+            retJSON.note = result[0].note;
+            var sql = "SELECT * FROM question,choices WHERE question.idquestion = choices.question_id AND question.questionnaire_id =" + retJSON.id;
+            con.query(sql, function (err, result, fields) {
+                retJSON.questions = {};
+                for (var i = 0; i < result.length; i++)
+                {
+                    if (!retJSON.questions[result[i].idquestion])
+                        retJSON.questions[result[i].idquestion] = {};
+                    retJSON.questions[result[i].idquestion]['question_text'] = result[i].question_text;
+                    retJSON.questions[result[i].idquestion].type = result[i].type;
+                    if (retJSON.questions[result[i].idquestion].choices == undefined)
+                    {   
+                        retJSON.questions[result[i].idquestion].choices = {};
+                    }
+                    retJSON.questions[result[i].idquestion].choices[result[i].idchoices] = result[i].choice;
+                }
+                var sql = "SELECT * FROM question,response WHERE question.idquestion = response.question_id AND question.questionnaire_id = " + retJSON.id;
+                con.query(sql, function (err, result, fileds) {
+                    for (var i = 0; i < result.length; i++) {
+                        if (!retJSON.questions[result[i].idquestion])
+                            retJSON.questions[result[i].idquestion] = {};
+                        retJSON.questions[result[i].idquestion]['response'] = {};
+                        if (retJSON.questions[result[i].idquestion].response == undefined) {
+                            retJSON.questions[result[i].idquestion].response = {};
+                        }
+                        retJSON.questions[result[i].idquestion].response[result[i].idresponse] = result[i].response;
+                    }
+                    console.log(retJSON);
+                    res.render('pages/activesurveydetail.ejs', { data: retJSON });
+                });             
+            });
+        });
+    }
+    else
+        res.render('pages/login.ejs', { error: '' });
+});
+
 app.get('/expiredsurveys', (req, res) => {
     ssn = req.session;
     if (ssn.userLoggedin) {
@@ -107,32 +156,33 @@ app.get('/expiredsurveys', (req, res) => {
     else
         res.render('pages/login.ejs', { error: '' });
 });
-app.get('/createSurvey', (req, res) => {
-    ssn = req.session;
-    res.sendFile("webpages/createSurvey.html", { root: 'public' });
-});
 
-app.get('/createDraft', (req, res) => {
+
+app.get('/drafts', (req, res) => {
     ssn = req.session;
     if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
         res.redirect('/');
-    else
-    {
-        res.sendFile("webpages/createSurvey.html", { root: 'public' });
+    else {
+        var sql = "SELECT * FROM drafts WHERE creator_id = " + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            res.render("pages/drafts.ejs", { drafts: result });
+        });
     }
 });
 
-
-
-
-
-app.get('/register', (req, res) => {
+app.get('/createdraft', (req, res) => {
     ssn = req.session;
-    if (ssn.userloggedin) {
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
         res.redirect('/');
+    else {
+        res.render('pages/createdraft.ejs', { error: '' });
     }
-    res.sendFile("webpages/register.html", { root: 'public' });
 });
+
+
 
 
 app.get('/logout', (req, res) => {
@@ -150,7 +200,6 @@ app.get('/logout', (req, res) => {
 //USER RELATED ##############################################################################################################
 app.post('/login', (req, res) => {
     ssn = req.session;
-
     var username = req.body.username;
     var password = req.body.password;
     var sql = "SELECT * FROM user WHERE username = '" + username + "' AND password = '" + password + "'";
@@ -203,73 +252,10 @@ app.get("/api/getquestionnaire/createdByUser/running/:userid", (req, res) => {
 
 
 
-
-//TOBE DONE
-app.get("/api/addquestionnaire", (req, res) => {
-    /*var title = req.body.title;
-    var creator_id = req.body.creator_id;
-    var note = req.body.note;
-    var questions = req.body.questions;*/
-
-    var title = req.query.title;
-    var creator_id = req.query.creator_id;
-    var note = req.query.note;
-    var questions = req.query.questions;
-    var timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-    if (title == undefined || creator_id == undefined || note == undefined)
-    {
-        res.json({ message: "invalid parameters", status:false});
-    }
-    else
-    {
-        var sql = "INSERT INTO questionnaire(`idquestionnaire`, `title`, `creator_id`, `running`, `timestamppost`, `note`) VALUES ('0', '" + title + "', " + creator_id + ", '1', '" + timestamp + "', '" + note + "')";
-        con.query(sql, function (err, result, fields)
-        {
-            if (err)
-                throw err;
-            var questionnaireId = result.insertId;
-            if (questions != undefined)
-            {
-                questions.forEach(function (question)
-                {
-                    var question = JSON.parse(question);
-                    if ((question.type==="text" || question.type==="choice") || !question.question_text == undefined)
-                    {
-                        var sql = "INSERT INTO question(idquestion,type,question_text,questionnaire_id) VALUES(0,'" + question.type + "','" + question.question_text + "','" + questionnaireId + "')";
-                        console.log(sql);
-                        con.query(sql, function (err, result, fields) {
-                            if (err) throw err;
-                            var questionId = result.insertId;
-                            if (question.choices != undefined)
-                            {
-                                question.choices.forEach(function (choice) {
-                                    var sql = "INSERT INTO choices(idchoices,choice,question_id) VALUES(0,'" + choice.choice + "'," + qid + ")";
-                                    con.query(sql, function (err, result, fields) {
-                                        if (err) throw err;
-                                    });
-                                }.bind({ qid: questionId}));
-                            }
-                        }.bind({ question: question }));
-                        res.json({ success: true });
-                    }
-                    else
-                    {
-                        res.json({ success: false });
-                    }
-                });
-            }
-        });
-        
-    }
-});
-
-
-
-
-app.get("/api/addresponse/:questionid", (req, res) => {
-    var question_id = req.params.questionid;
-    var userid = req.query.userid;
-    var response = req.query.response;
+app.post("/api/addresponse/:questionid", (req, res) => {
+    var question_id = req.body.questionid;
+    var userid = req.body.userid;
+    var response = req.body.response;
     var sql = "SELECT * FROM response WHERE user_id = " + userid + " AND question_id =" + question_id;
 
     con.query(sql, function (err, result, fields) {
@@ -290,6 +276,19 @@ app.get("/api/addresponse/:questionid", (req, res) => {
     });
 });
 
+app.get("/api/getgroups", (req, res) => {
+    var sql = "SELECT * FROM groups";
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+
+
+
 app.get("/api/getquestionnaire/createdbyuser/expired/:userid", (req, res) => {
 
     var sql = "SELECT * FROM questionnaire WHERE running = 0 AND creator_id = " + req.params.userid;
@@ -300,9 +299,11 @@ app.get("/api/getquestionnaire/createdbyuser/expired/:userid", (req, res) => {
         res.json(result);
     });
 });
+
+
 app.get("/api/getquestionnaire/foruser/:userid", (req, res) => {    // BUGGY ____DONT USE
 
-    var sql = "SELECT questionnaire.idquestionnaire,questionnaire.title,questionnaire.creator_id,questionnaire.running,questionnaire.note,questionnaire.timestamppost,user.username FROM questionnaire JOIN question JOIN response JOIN user WHERE questionnaire.idquestionnaire = question.questionnaire_id AND response.question_id = question.idquestion AND response.user_id = user.idUser AND  user.idUser = " + req.params.userid;
+    var sql = "SELECT questionnaire.idquestionnaire,questionnaire.title,questionnaire.creator_id,questionnaire.running,questionnaire.note,questionnaire.timestamppost,user.username FROM questionnaire JOIN user WHERE questionnaire.idquestionnaire = question.questionnaire_id AND response.question_id = question.idquestion AND response.user_id = user.idUser AND  user.idUser = " + req.params.userid;
 
     con.query(sql, function (err, result, fields) {
         if (err) {

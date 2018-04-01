@@ -160,7 +160,8 @@ app.get('/checkLogin',(req, res)=>{
     else
         res.json({ status: true });
 });
-app.post('/login', (req, res) => {
+app.get('/login', (req, res) => {
+    console.log(req.body);
     ssn = req.session;
     db.collection("users").find({ email: req.body.email, password: req.body.password }).toArray((err, results) => {
         if (results[0] == undefined)

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Pen Survey</title>
+    <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="stylesheets/surveys.css" rel="stylesheet" type="text/css" />
+	<link href="stylesheets/drafts.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+
+    <div class="header">
+        <br />
+        <a href="/" class="logo">Pen Survey</a>
+        <a class="login " href="/">Active Surveys</a>
+        <a class="expiredsurveys" href="/expiredsurveys">Expired Surveys</a>
+        <a href="/drafts" class="createSurvey menu cf active">Drafts</a>
+        <a href="/logout" class="register">Logout</a>
+    </div>
+	
+		<a href="/createdrafts"><span class='pulse-button' style="position:fixed;margin-left:40%;top:80%">Create</span></a>
+    <div class="survey-list">
+        <% drafts.forEach(function(draft){  %>
+            <div class="survey-box" onclick="SelectSurvey('\<%= draft.iddrafts %>\');"> <h1> <%= draft.title %> </h1 ><p><%= draft.timestamp.toDateString() %></p><p> <%= draft.note %> </p></div >;
+        <% })  %>
+        
+    </div>
+</body>
+</html>
+
+
+<script src="https://code.jquery.com/jquery-3.2.1.js"
+        integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+        crossorigin="anonymous">
+</script>
+
+<script>
+    var SelectSurvey = function (id)
+    {
+        window.location = "/survey?id=" + id;
+    }
+</script>
