@@ -1,221 +1,248 @@
-﻿var express = require('express');
+var express = require('express');
 var bodyparser = require('body-parser');
-var MongoClient = require('mongodb').MongoClient;
-var ObjectID = require('mongodb').ObjectID;
 var nodemailer = require('nodemailer');
 var session = require('express-session');
-var transpoter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "pensurvey.crespoter@gmail.com",
-        pass: "blanserver"
-    }
-});
-
+var mysql = require('mysql');
+var moment = require('moment');
 var app = express();
-MongoClient.connect("mongodb://crespoter:blantest@ds115573.mlab.com:15573/voting-app", (err, database) => {
-    if (err)
-        console.log(err);
-    db = database;
-    app.listen(process.env.PORT|3000, () => {
-        console.log("listening to port " + process.env.PORT | 3000);
-    });
-});
+const  pageSize = 10;
 
-app.set('view engine', 'pug');
+app.set('view engine', 'ejs');
+
 app.use(session({
-    secret: "crespotersLittleSecret",
+    secret: "pensurvey",
     resave: true,
     saveUninitialized: true
 }));
-app.use(bodyparser.json());      
-app.use(bodyparser.urlencoded({     
+
+app.use(bodyparser.json());
+
+
+app.use(bodyparser.urlencoded({
     extended: true
 }));
+app.use(express.static(__dirname + '/public'));
 
-app.use(express.static(__dirname + '/public')); 
+
+//SQL CONNECTION
+var request;
+var con = mysql.createConnection({
+    host: "127.0.0.1",
+    user: "root",
+    password: "root",
+    port: 3306,
+    database:"pensurvey"
+});
 
 
+
+con.connect(function (err) {
+    if (err) throw err;
+    console.log("SQL DATABASE CONNECTED");
+    app.listen(process.env.PORT | 80,'0.0.0.0', () => {
+        console.log("listening to port " + (process.env.PORT | 80));
+    });
+});
 
 
 app.get('/', (req, res) => {
     ssn = req.session;
-    res.sendFile("webpages/surveys.html", { root: 'public' });
-});
-
-app.get('/createSurvey', (req, res) => {
-    ssn = req.session;
-    res.sendFile("webpages/createSurvey.html", { root: 'public' });
-})
-
-app.get('/register', (req, res) => {
-    ssn = req.session;
-    if (ssn.userloggedin)
+    if (ssn.userLoggedin)
     {
-        res.redirect('/');
-    }
-    res.sendFile("webpages/register.html", { root: 'public' });
-});
-
-
-app.get('/validateUser', (req, res) => {
-    if (req.query.function == "username-free")
-    {
-        db.collection("users").find({ name: req.query.username }).toArray((err, results) => {
-            if (results[0] != undefined)
-            {
-                res.json({
-                    success: false
-                });
+        var sql = "SELECT * FROM questionnaire WHERE running =1 AND creator_id = " + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
             }
-            else
-            {
-                res.json({
-                    success: true
-                });
-            }
+            res.render("pages/activesurveys.ejs", {questionnaires:result});
         });
     }
-    if (req.query.function == "check-email")
-    {
-        db.collection("users").find({ email: req.query.email }).toArray((err, results) => {
-            if (results[0] != undefined) {
-                res.json({
-                    success: false
-                });
-            }
-            else
-            {
-                res.json({
-                    success: true
-                });
-            }
-
-        });
-    }
-    if (req.query.function == "register")
-    {
-        pendingVisitor = {
-            name: req.query.username,
-            password: req.query.password,
-            email: req.query.email
-        };
-       
-        db.collection("pendingUser").save(pendingVisitor);  
-        retJson = {
-            success: true
-        }
-
-        var mailOptions = {
-            from: "pensurvey.crespoter@gmail.com",
-            to: pendingVisitor.email,
-            subject: "Confirm your account at Pen Survey",
-            html: "<h1>Confirm your account at Pen survey by clicking on the link</h1><a href='https://mighty-badlands-58553.herokuapp.com/verify/" + pendingVisitor._id + "'>Click Here</a>"//CHANGE AFTER HOSTING
-        }
-
-        transpoter.sendMail(mailOptions, (error, info) => {
-            if (error)
-            {
-                retJson.success = false;
-                res.json(retJson);
-                console.log(error);
-            }
-            else {
-                res.json(retJson);
-            }
-        });
-    }
-});
-
-app.get('/verify/:userid', (req, res) => {
-    ssn = req.session;
-    if (ssn.userloggedin) {
-        res.send("Already validated");
-    }
-    else {
-        db.collection("pendingUser").find({ _id: ObjectID(req.params.userid) }).toArray((err, results) => {
-            if (results.length == 0) {
-                res.send(404, "Invalid request");
-            }
-            else {
-                db.collection("users").save(results[0]);
-                ssn.userloggedin = true;
-                ssn.username = results[0].name;
-                ssn.email = results[0].email;
-            }
-        });
-        db.collection("pendingUser").remove({ _id: ObjectID(req.params.userid) }, (err, results) => {
-            if (err || results.length <= 0) {
-                res.send(404, "Something unexpected happened. Please try at a later time ");
-            }
-            res.send("<h1>Successfully Registered</h1><br /><a href='/'>Click here to go to home page</a>");
-        });
-    }
-});
-
-app.get('/checkLogin',(req, res)=>{
-    ssn = req.session;
-    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
-        res.json({ status: false, name:ssn.username });
     else
-        res.json({ status: true });
+        res.render('pages/login.ejs', { error: '' });
 });
-app.get('/login', (req, res) => {
-    console.log(req.body);
+
+app.post('/', (req, res) => {
     ssn = req.session;
-    db.collection("users").find({ email: req.body.email, password: req.body.password }).toArray((err, results) => {
-        if (results[0] == undefined)
+    var username = req.body.username;
+    var password = req.body.password;
+    var sql = "SELECT * FROM user WHERE username = '" + username + "' AND password = '" + password + "'";
+    var status = false;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        if (result.length > 0)  
         {
-            var retJson = {
-                status: false
-            }
-            res.json(retJson);
-        }
-        else {
-            var retJson = {
-                status: true,
-                id: results[0]._id,
-                user: results[0].name
-            };
             ssn.userLoggedin = true;
-            ssn.username = results[0].name;
-            res.json(retJson);
+            ssn.username = result[0].username;
+            ssn.userid = result[0].idUser;
+            res.redirect('/');
+        }
+        else
+        {
+            var sql = "SELECT * FROM user WHERE username = '" + username + "'";
+            con.query(sql, function (err, result, fields) {
+                var message = "ERROR";
+                if (err) throw err;
+                if (result.length > 0)
+                    message = "Password is Incorrect";
+                else
+                    message = "Username doesnt exist";
+                res.render('pages/login.ejs', { error: message });
+            });
         }
     });
 });
 
 
-app.post('/createSurveyAPI', (req, res) => {
+app.get('/activesurveydetails', (req, res) => {
+    ssn = req.session;
+    var retJSON = {};
+    if (ssn.userLoggedin) {
+        var sql = "SELECT * FROM questionnaire WHERE idquestionnaire=" + req.query.id + " AND creator_id=" + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            retJSON.id = result[0].idquestionnaire;
+            retJSON.title = result[0].title;
+            retJSON.datetime = result[0].timestamppost;
+            retJSON.note = result[0].note;
+            var sql = "SELECT * FROM question,choices WHERE question.idquestion = choices.question_id AND question.questionnaire_id =" + retJSON.id;
+            con.query(sql, function (err, result, fields) {
+                retJSON.questions = {};
+                for (var i = 0; i < result.length; i++)
+                {
+                    if (!retJSON.questions[result[i].idquestion])
+                        retJSON.questions[result[i].idquestion] = {};
+                    retJSON.questions[result[i].idquestion]['question_text'] = result[i].question_text;
+                    retJSON.questions[result[i].idquestion].type = result[i].type;
+                    if (retJSON.questions[result[i].idquestion].choices == undefined)
+                    {   
+                        retJSON.questions[result[i].idquestion].choices = {};
+                    }
+                    retJSON.questions[result[i].idquestion].choices[result[i].idchoices] = result[i].choice;
+                }
+                var sql = "SELECT * FROM question,response WHERE question.idquestion = response.question_id AND question.questionnaire_id = " + retJSON.id;
+                con.query(sql, function (err, result, fileds) {
+                    for (var i = 0; i < result.length; i++) {
+                        if (!retJSON.questions[result[i].idquestion])
+                            retJSON.questions[result[i].idquestion] = {};
+                        if (retJSON.questions[result[i].idquestion].response == undefined) {
+                            retJSON.questions[result[i].idquestion].response = [];
+                        }
+                        retJSON.questions[result[i].idquestion].response.push(result[i].response);
+                    }
+                    res.render('pages/activesurveydetail.ejs', { data: retJSON });
+                });             
+            });
+        });
+    }
+    else
+        res.render('pages/login.ejs', { error: '' });
+});
+
+
+app.get('/expiredsurveydetails', (req, res) => {
+    ssn = req.session;
+    var retJSON = {};
+    if (ssn.userLoggedin) {
+        var sql = "SELECT * FROM questionnaire WHERE idquestionnaire=" + req.query.id + " AND creator_id=" + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            retJSON.id = result[0].idquestionnaire;
+            retJSON.title = result[0].title;
+            retJSON.datetime = result[0].timestamppost;
+            retJSON.note = result[0].note;
+            var sql = "SELECT * FROM question,choices WHERE question.idquestion = choices.question_id AND question.questionnaire_id =" + retJSON.id;
+            con.query(sql, function (err, result, fields) {
+                retJSON.questions = {};
+                for (var i = 0; i < result.length; i++) {
+                    if (!retJSON.questions[result[i].idquestion])
+                        retJSON.questions[result[i].idquestion] = {};
+                    retJSON.questions[result[i].idquestion]['question_text'] = result[i].question_text;
+                    retJSON.questions[result[i].idquestion].type = result[i].type;
+                    if (retJSON.questions[result[i].idquestion].choices == undefined) {
+                        retJSON.questions[result[i].idquestion].choices = {};
+                    }
+                    retJSON.questions[result[i].idquestion].choices[result[i].idchoices] = result[i].choice;
+                }
+                var sql = "SELECT * FROM question,response WHERE question.idquestion = response.question_id AND question.questionnaire_id = " + retJSON.id;
+                con.query(sql, function (err, result, fileds) {
+                    for (var i = 0; i < result.length; i++) {
+                        if (!retJSON.questions[result[i].idquestion])
+                            retJSON.questions[result[i].idquestion] = {};
+                        if (retJSON.questions[result[i].idquestion].response == undefined) {
+                            retJSON.questions[result[i].idquestion].response = [];
+                        }
+                        retJSON.questions[result[i].idquestion].response.push(result[i].response);
+                    }
+                    res.render('pages/expiredsurveydetails.ejs', { data: retJSON });
+                });
+            });
+        });
+    }
+    else
+        res.render('pages/login.ejs', { error: '' });
+});
+
+
+app.post('/activesurveydetails', (req, res) => {
     ssn = req.session;
     if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
-    {
-        res.send("INVALID REQUEST  UNEXPECTED ERROR");
+        res.redirect('/');
+    else {
+        var sql = "UPDATE questionnaire SET running = 0 WHERE idquestionnaire = " + req.query.id;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            res.redirect('/');
+        });
     }
-    var survey = {
-        question: req.body.question,
-        options: req.body.options,
-        user:ssn.username
-    };
-    var votes = [];
-    for (var i = 0; i < req.body.options.length; i++) {
-        votes.push(0);
+
+});
+app.get('/expiredsurveys', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin) {
+        var sql = "SELECT * FROM questionnaire WHERE running =0 AND creator_id = " + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            res.render("pages/expiredsurveys.ejs", { questionnaires: result });
+        });
     }
-    survey.votes = votes;
-    retObj = {
-        success: true,
-    };
-    db.collection("survey").save(survey);
-    retObj.question_id = survey._id;
-    res.json(retObj);
+    else
+        res.render('pages/login.ejs', { error: '' });
 });
 
 
-app.get('/surveysAPI/:pagenumber', (req, res) => {
-    db.collection("survey").aggregate([{ $project: { _id: "$_id", totalVotes: { $sum: "$votes" }, question: "$question" } }, { $sort: { totalVotes: -1 } }], function (err, data) {
-        res.json(data);
-    });
-      
+app.get('/drafts', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
+        res.redirect('/');
+    else {
+        var sql = "SELECT * FROM drafts WHERE creator_id = " + ssn.userid;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            res.render("pages/drafts.ejs", { drafts: result });
+        });
+    }
 });
+
+app.get('/createdrafts', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
+        res.redirect('/');
+    else {
+        res.render('pages/createdraft.ejs', { error: '' });
+    }
+});
+
+
 
 
 app.get('/logout', (req, res) => {
@@ -225,78 +252,161 @@ app.get('/logout', (req, res) => {
 });
 
 
-app.get('/mySurveys', (req, res) => {
+
+
+
+
+
+//USER RELATED ##############################################################################################################
+app.post('/login', (req, res) => {
     ssn = req.session;
-    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false) {
-        res.redirect('/');
-    }
-    else
-    {
-        res.sendFile("webpages/mySurveys.html", { root: 'public' });
-    }
-});
-
-
-app.get('/mySurveysAPI', (req, res) => {
-    ssn = req.session;
-    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false) {
-        res.redirect('/');
-    }
-    else
-    {
-
-        db.collection("survey").aggregate([{ $project: { _id: "$_id", totalVotes: { $sum: "$votes" }, question: "$question", user: "$user" } }, { $sort: { totalVotes: -1 } },{$match: { user: ssn.username } }], function (err, data) {
-            res.json(data);
-        });
-    }
-});
-
-
-app.get('/survey', (req, res) => {
-    ssn.surveyid = req.param.surveyid;
-    res.sendFile("webpages/survey.html", { root: 'public' });
-});
-
-
-app.get('/surveyAPI/:id', (req, res) => {
-    id = req.params.id;
-    db.collection('survey').find({ _id: ObjectID(id) }).toArray((err, results) => {
-        if (results[0] == undefined)
-        {
-            res.send("UNEXPECTED ERROR OCCURED >> PLEASE CONTACT SYSTEM ADMINISTRATOR - Crespoter");
-        }
-        else
-        {
-            res.json(results[0]);
-        }
-    });
-});
-
-
-app.post('/question-submit', (req, res) => {
-    ssn = req.session;
-    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false) {
-        res.send("SECURITY ALERT > > PLEASE CONTACT ADMINISTRATOR __ CRESPOTER");
-    }
-    userSurvey = {
-        user: ssn.username,
-        question: req.body.question
-    };
-    db.collection("userSurvey").find(userSurvey).toArray((err,data) => {
-        if (data[0] == undefined)
-        {
-            db.collection('userSurvey').save(userSurvey);
-            db.collection('survey').find({ _id: ObjectID(req.body.question) }).toArray((err, results) => {
-                results[0].votes[parseInt(req.body.option) - 1] += 1;
-                console.log(results[0]);
-                db.collection("survey").save(results[0]);
-                res.redirect("/survey/?id=" + req.body.question);
+    var username = req.body.username;
+    var password = req.body.password;
+    var sql = "SELECT * FROM user WHERE username = '" + username + "' AND password = '" + password + "'";
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        if (result.length <= 0) {
+            sql = "SELECT * FROM user WHERE username='" + username + "'";
+            con.query(sql, function (errUser, resultUser, fieldsUser) {
+                if (errUser) throw err;
+                if (resultUser.length > 0) {
+                    res.json({ usernameValid: false, passwordValid: false });
+                }
+                else {
+                    res.json({ usernameValid: true, passwordValid: false });
+                }
             });
         }
-        else
-        {
-            res.send("You have already voted for this survey .");
+        else {
+            ssn.userLoggedin = true;
+            ssn.username = result[0].username;
+            ssn.userid = result[0].idUser;
+            res.json({ usernameValid: true, passwordValid: true,id:result[0].idUser});
         }
     });
-    
+});
+
+
+
+app.get('/checkLogin', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
+        res.json({ status: false});
+    else
+        res.json({ status: true, name: ssn.username, id: ssn.userid });
+});
+
+//QUESTIONNAIRE RELATED ###################################################################################################
+
+app.get("/api/getquestionnaire/createdByUser/running/:userid", (req, res) => {
+
+    var sql = "SELECT * FROM questionnaire WHERE running = 1 AND creator_id = " + req.params.userid + " ORDER BY timestamppost DESC";
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+
+
+
+app.post("/api/addresponse/:questionid", (req, res) => {
+    var question_id = req.body.questionid;
+    var userid = req.body.userid;
+    var response = req.body.response;
+    var sql = "SELECT * FROM response WHERE user_id = " + userid + " AND question_id =" + question_id;
+
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        if (result.length > 0)
+            res.json({ error: "Response already submitted" });
+        else {
+            var sql = "INSERT INTO response(idresponse,response,question_id,user_id) VALUES(0,'" + response + "'," + question_id + "," + userid + ")";
+            con.query(sql, function (err, result, fields) {
+                if (err) {
+                    throw err;
+                }
+                res.json({ error: "none" });
+            });
+        }
+    });
+});
+
+app.get("/api/getgroups", (req, res) => {
+    var sql = "SELECT * FROM groups";
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+
+
+
+app.get("/api/getquestionnaire/createdbyuser/expired/:userid", (req, res) => {
+
+    var sql = "SELECT * FROM questionnaire WHERE running = 0 AND creator_id = " + req.params.userid;
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+
+app.get("/api/getquestionnaire/foruser/:userid", (req, res) => {    // BUGGY ____DONT USE
+
+    var sql = "SELECT questionnaire.idquestionnaire,questionnaire.title,questionnaire.creator_id,questionnaire.running,questionnaire.note,questionnaire.timestamppost,user.username FROM questionnaire JOIN user WHERE questionnaire.idquestionnaire = question.questionnaire_id AND response.question_id = question.idquestion AND response.user_id = user.idUser AND  user.idUser = " + req.params.userid;
+
+    con.query(sql, function (err, result, fields) {
+        if (err) {
+            throw err;
+        }
+        res.json(result);
+    });
+});
+
+
+app.get("/api/getquestions/:id",(req, res)=>{
+    var sql = "SELECT * FROM question WHERE questionnaire_id = " + req.params.id;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    });
+});
+
+app.get("/api/getchoices/:id", (req, res) => {
+    var sql = "SELECT * FROM choices WHERE question_id = " + req.params.id;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    });
+});
+
+
+//PERMISSIONS #############################################################################################################
+app.get("/api/getpermissions/:userid", (req, res) => {
+    var sql = "SELECT * FROM permissions WHERE user_id = " + req.params.userid;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    });
+});
+
+
+//DRAFTS####################################################################################################################
+
+app.get("/api/getdrafts/:userid", (req, res) => {
+    var sql = "SELECT * FROM drafts WHERE creator_id = " + req.params.userid;
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        res.json(result);
+    });
 });

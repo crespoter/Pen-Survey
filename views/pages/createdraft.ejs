@@ -6,215 +6,68 @@
     <title>Pen Survey</title>
     <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet"> 
-    <link href="https://fonts.googleapis.com/css?family=Lemonada" rel="stylesheet"> 
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet"> 
-    <link href="/stylesheets/createSurvey.css" rel="stylesheet" type="text/css" />
 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="/stylesheets/createSurvey.css" rel="stylesheet" type="text/css" />
+	<link href="stylesheets/drafts.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="/stylesheets/sendbuttonstyle.css" />
 </head>
 <body>
-
     <div class="header">
         <br/>
-                <a href="/" class="logo">Pen Survey</a>
+        <a href="/" class="logo">Pen Survey</a>
         <a class="login " href="/">Active Surveys</a>
-        <a class="expiredsurveys active" href="/expiredsurveys">Expired Surveys</a>
-        <a href="/drafts" class="createSurvey">Drafts</a>
+        <a class="expiredsurveys " href="/expiredsurveys">Expired Surveys</a>
+        <a href="/drafts" class="createSurvey active">Drafts</a>
         <a href="/logout" class="register">Logout</a>
     </div>
-    <p class="question-pre">Type your question here</p>
-    <textarea name="question" class="question"></textarea><button class="submit">Submit</button><p class="error hidden">Question cant be blank</p><br/>
-    <button class="option1">Add Option +</button>
-    <div class="option1-input-options hidden">
-        <input name="option1" class="option1-input" placeholder="Option 1" id="option1-input"/><br/>
-        <button class="option1-save">Save</button>
-        <button class="option1-cancel">Cancel</button>
-    </div>
-    <p class="option1-display hidden"><i class="fa fa-circle-o" aria-hidden="true"></i> Whatever I just typed in</p>
-
-    <button class="option2 hidden">Add Option +</button>
-    <div class="option2-input-options hidden">
-        <input name="option2" class="option2-input" placeholder="Option 2" /><br />
-        <button class="option2-save">Save</button>
-        <button class="option2-cancel">Cancel</button>
-    </div>
-    <p class="option2-display hidden"><i class="fa fa-circle-o" aria-hidden="true"></i> Whatever I just typed in</p>
-
-    <button class="option3 hidden" id="option3">Add Option +</button>
-    <div class="option3-input-options hidden" id="option3-input-options">
-        <input name="option3" class="option3-input" id="option3-input" placeholder="Option 3" /><br />
-        <button class="option3-save" id="option3-save">Save</button>
-        <button class="option3-cancel" id="option3-cancel">Cancel</button>
-    </div>
-    <p class="option3-display hidden" id="option3-display"><i class="fa fa-circle-o" aria-hidden="true"></i> Whatever I just typed in</p>
-
-    <button class="option3 hidden" id="option4">Add Option +</button>
-    <div class="option3-input-options hidden" id="option4-input-options">
-        <input name="option4" class="option3-input" id="option4-input" placeholder="Option 4" /><br />
-        <button class="option3-save" id="option4-save">Save</button>
-        <button class="option3-cancel" id="option4-cancel">Cancel</button>
-    </div>
-    <p class="option3-display hidden" id="option4-display"><i class="fa fa-circle-o" aria-hidden="true"></i> Whatever I just typed in</p>
-
-
-    <p class="max-limit hidden">Max option limit reached</p>
-    
-   
+	<div class="container">
+		<form action ="#" method = "post">
+			<div class="form-group">
+				<label>Title:</label>
+				<input type="text" class="form-control" name="title">
+			</div>
+			<div class="question-list">
+			</div>
+			<span class='pulse-button' style="display:block;margin-top:5%;margin-left:2%;height:80px;width:80px">Add</span>
+			<button class="button-two" style="position:fixed;margin-left:60%;top:80%"><span>Create</span></button>
+		</form>
+	</div>
 </body>
 </html>
 <script src="https://code.jquery.com/jquery-3.2.1.js"
         integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
         crossorigin="anonymous">
 </script>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script>
+	deleteQuestion = function(element){
+		$(element).parent().remove();
+	}
+	deleteChoice = function(element){
+		$(element).parent().remove();
+	}
+	addOption = function(element){
+		$(element).before(`
+			<div>
+				<input type="text" class="form-control" placeholder="Choice" name="choices[]" style="width:600px;display:inline"/><button type="button" class="btn btn-danger" onclick="deleteChoice(this);">X</button> 
+			</div>
+		`)
+	}
+	$(document).ready(function(){
+		$(".pulse-button").click(function(){
+			$(".question-list").append(`<div class="well well-lg">
+					<div class="form-group">
+						<label>Question:</label>
+						<input type="text" class="form-control" name="questions[]" />
+					</div>
+					<input type="hidden" name="choiceLength[]" value = 0/>
+					<button class="btn btn-success add-choice" type="button" onclick="addOption(this)">Add Choice</button>
+					<button id="delete-question" class="btn btn-danger" type="button" onclick="deleteQuestion(this);">Delete Question</button>
+				</div>`);
+		});
+		
+	});
 
-
-
-$(document).ready(() => {
-    var options = [];
-    var optionCreated = [false, false, false, false];
-    $(".email-login").keypress((event) => {
-        var keycode = (event.keyCode ? event.keyCode : event.which);
-        if (keycode == '13') {
-            attemptLogin();
-        }
-    });
-    $(".password-login").keypress((event) => {
-        var keycode = (event.keyCode ? event.keyCode : event.which);
-        if (keycode == '13') {
-            attemptLogin();
-        }
-    });
-    $(".option1").click(() => {
-        $(".option1").addClass("hidden");
-        $(".option1-input-options").removeClass("hidden");
-    });
-    $(".option1-cancel").click(() => {
-        $(".option1").removeClass("hidden");
-        $(".option1-input-options").addClass("hidden");
-    });
-    $(".option1-save").click(() => {
-        
-        if ($(".option1-input").val().trim().length == 0) {
-            $(".error").removeClass("hidden");
-            $(".error").text("Option 1 cannot be blank");
-        }
-        else {
-
-            options.push($(".option1-input").val());
-            $(".error").addClass("hidden");
-            $(".option1-input-options").addClass("hidden");
-            $(".option1-display").removeClass("hidden");
-
-            optionCreated[0] = true;
-            $(".option1-display").html('<i class="fa fa-circle-o" aria-hidden="true"></i> ' + options[0]);
-            $(".option2").removeClass("hidden");
-        }
-    });
-
-
-    $(".option2").click(() => {
-        $(".option2").addClass("hidden");
-        $(".option2-input-options").removeClass("hidden");
-    });
-    $(".option2-cancel").click(() => {
-        $(".option2").removeClass("hidden");
-        $(".option2-input-options").addClass("hidden");
-    });
-    $(".option2-save").click(() => {
-        
-        if ($(".option2-input").val().trim().length == 0) {
-            $(".error").removeClass("hidden");
-            $(".error").text("Option 2 cannot be blank");
-        }
-        else {
-            options.push($(".option2-input").val());
-            $(".error").addClass("hidden");
-            $(".option2-input-options").addClass("hidden");
-            $(".option2-display").removeClass("hidden");
-
-            optionCreated[1] = true;
-            $(".option2-display").html('<i class="fa fa-circle-o" aria-hidden="true"></i> ' + options[1]);
-            $("#option3").removeClass("hidden");
-        }
-    });
-
-    $("#option3").click(() => {
-        $("#option3").addClass("hidden");
-        $("#option3-input-options").removeClass("hidden");
-    });
-    $("#option3-cancel").click(() => {
-        $("#option3").removeClass("hidden");
-        $("#option3-input-options").addClass("hidden");
-    });
-    $("#option3-save").click(() => {
-
-        
-        if ($("#option3-input").val().trim().length == 0) {
-            $(".error").removeClass("hidden");
-            $(".error").text("Option 3 cannot be blank");
-        }
-        else {
-            options.push($("#option3-input").val());
-            $(".error").addClass("hidden");
-            $("#option3-input-options").addClass("hidden");
-            $("#option3-display").removeClass("hidden");
-
-            $("#option3-display").html('<i class="fa fa-circle-o" aria-hidden="true"></i> ' + options[2]);
-            $("#option4").removeClass("hidden");
-        }
-    });
-
-    $("#option4").click(() => {
-        $("#option4").addClass("hidden");
-        $("#option4-input-options").removeClass("hidden");
-    });
-    $("#option4-cancel").click(() => {
-        $("#option4").removeClass("hidden");
-        $("#option4-input-options").addClass("hidden");
-    });
-    $("#option4-save").click(() => {
-        
-        if ($("#option4-input").val().trim().length == 0) {
-            $(".error").removeClass("hidden");
-            $(".error").text("Option 4 cannot be blank");
-        }
-        else {
-            options.push($("#option4-input").val());
-            $(".error").addClass("hidden");
-            $("#option4-input-options").addClass("hidden");
-            $("#option4-display").removeClass("hidden");
-            optionCreated[3] = true;
-            $("#option4-display").html('<i class="fa fa-circle-o" aria-hidden="true"></i> ' + options[3]);
-            $(".max-limit").removeClass("hidden");
-        }
-    });
-    $(".submit").click(() => {
-        var Question = $(".question").val();
-        if (Question.trim().length == 0) {
-            $(".error").removeClass("hidden");
-            $(".error").text("Question cannot be blank");
-        }
-        else {
-            var requestObj = {
-                question: Question,
-            }
-            $.extend(requestObj, { "options": options });
-            $.post("/createSurveyAPI", requestObj, (data, success) => {
-                if (data.success)
-                {
-                    window.location = "/survey?id=" + data.question_id;
-                }
-                else
-                {
-                    alert("Unexpected Error ! \n Survey creation has failed . Please contact admin");
-                }
-            });
-        }
-    });
-    $(".login").click(() => {
-        attemptLogin();
-    });
- });
 </script>

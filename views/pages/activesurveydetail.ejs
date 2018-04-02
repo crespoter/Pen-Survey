@@ -27,28 +27,81 @@
         <a href="/logout" class="register">Logout</a>
     </div>
 	<div class = "container">
+		<form action='#' method = 'post' >
+			<button class="btn btn-danger btn-lg" style = "float:right">Close Polls</button>
+		</form>
 		<h1>Title : <%=data.title %></h1>
 		<h2> Note : <%= data.note %>
 		<h2> Posted on <%=data.datetime %> </h2>
+		<% responseCount = {}; %>
 		<% for(var key in  data.questions){%>
+			<% responseCount[key] = {}; %>
 			<div class="well well-lg">
-				
+				<h4> Question : <%= data.questions[key]['question_text'] %> </h4>
+				<h3> Choices : </h3>
+				<% var choiceIndex = 0; %>
+
+				<% for(var choice_key in data.questions[key].choices){ %>
+ 					<h4><%=choiceIndex++ + 1 %>) <%=data.questions[key].choices[choice_key] %> </h4>
+					<% responseCount[key][choice_key] = {}; %>
+					<% responseCount[key][choice_key].value = 0; %>
+					<% responseCount[key][choice_key].index = choiceIndex; %>
+					
+					<% for(var response_key in data.questions[key].response){ %>
+						
+						<% if(data.questions[key].response[response_key] == choice_key){ %>
+							<% responseCount[key][choice_key].value++; %>
+						<% } %>
+					<% } %>
+				<% } %>
+				<br />
+				<h3> Current Statistics :</h3>
+					
+
+				<div id="chartContainer<%=key%>" style="height: 370px; max-width: 920px; margin: 0px auto;"></div>
 			</div>
 		<% } %>	
 	</div>
+
+
+	<script>
+			window.onload = function() {
+				<% for(key in responseCount){ %>
+				var chart<%=key %> = new CanvasJS.Chart("chartContainer<%= key %>", {
+					theme: "light2", // "light1", "light2", "dark1", "dark2"
+					exportEnabled: true,
+					animationEnabled: true,
+					title: {
+						text: ""
+					},
+					data: [{
+						type: "pie",
+						startAngle: 25,
+						toolTipContent: "<b>{label}</b>: {y}%",
+						showInLegend: "true",
+						legendText: "{label}",
+						indexLabelFontSize: 16,
+						indexLabel: "{label} - {y}%",
+						dataPoints: [
+							<% for(choice_key in responseCount[key]){ %>
+								<% var response = data.questions[key].response; %>
+								<% var numOfResponses = data.questions[key].response?data.questions[key].response.length:1; %>
+								{y:<%= responseCount[key][choice_key].value*100/numOfResponses %>,label:"<%=responseCount[key][choice_key].index %>"},
+							<% } %>
+						]
+					}]
+				});
+				chart<%=key %>.render();
+				<% } %>
+			}
+		</script>
 </body>
 </html>
 
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-3.2.1.js"
         integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
         crossorigin="anonymous">
 </script>
 
-<script>
-    var SelectSurvey = function (id)
-    {
-		console.log(id);
-        window.location = "/activesurveydetails?id=" + id;
-    }
-</script>
