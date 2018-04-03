@@ -23,6 +23,7 @@
     "mysql": "^2.15.0",
     "nodemailer": "^4.4.2",
     "pug": "^2.0.0-beta6",
-    "serve-favicon": "^2.3.0"
+    "serve-favicon": "^2.3.0",
+    "sync-sql": "^1.0.2"
   }
 }

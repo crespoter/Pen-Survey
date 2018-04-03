@@ -223,7 +223,7 @@ app.get('/drafts', (req, res) => {
     if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
         res.redirect('/');
     else {
-        var sql = "SELECT * FROM drafts WHERE creator_id = " + ssn.userid;
+        var sql = "SELECT * FROM drafts WHERE creator_id = " + ssn.userid + " ORDER BY timestamp DESC";
         con.query(sql, function (err, result, fields) {
             if (err) {
                 throw err;
@@ -235,6 +235,7 @@ app.get('/drafts', (req, res) => {
 
 app.get('/createdrafts', (req, res) => {
     ssn = req.session;
+
     if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
         res.redirect('/');
     else {
@@ -242,7 +243,51 @@ app.get('/createdrafts', (req, res) => {
     }
 });
 
+app.post('/createdrafts', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
+        res.redirect('/');
+    else {
+        var choiceLengths = req.body.choiceLength;
+        var questions = req.body.questions;
+        var choiceList = req.body.choices;
+        var title = req.body.title;
+        var note = req.body.note;
 
+        var choices = [];
+        var questionCounter = 0;
+        for (var i = 0; i < choiceLengths.length; i++) {
+            var choiceForQuestion = choiceList.splice(0, parseInt(choiceLengths[i]));
+            choices.push(choiceForQuestion);
+        }
+        var sql = "INSERT INTO drafts(iddrafts,title,creator_id,timestamp,note) VALUES(0,'" + title + "'," + ssn.userid + ",now(),'note')";
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            var draftId = result.insertId;
+            var sql = "INSERT into question(idquestion, type, question_text, questionnaire_id) VALUES ?";
+            var values = [];
+            for (var i = 0; i < questions.length; i++) {
+                values.push([0, "CHOICE", questions[i], draftId]);
+            }
+
+            con.query(sql, [values], function (err, result, fields) {
+                if (err) throw err;
+                for (var i = 0; i < values.length; i++) {
+                    for (var j = 0; j < choices[i].length; j++) {
+                        var sql = "INSERT into choices(idchoices,choice,question_id) VALUES(0,'" + choices[i][j] + "'," + (parseInt(result.insertId) + i) + ")";
+                        con.query(sql, function (err, result, fields) {
+                            if (err) throw err;
+                        });
+                    }
+                }
+
+                res.redirect("/drafts");
+            });
+        });
+    }
+});
 
 
 app.get('/logout', (req, res) => {
