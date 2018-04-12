@@ -27,7 +27,7 @@
 		<a href="/createdrafts"><span class='pulse-button' style="position:fixed;margin-left:40%;top:80%">Create</span></a>
     <div class="survey-list">
         <% drafts.forEach(function(draft){  %>
-            <div class="survey-box" onclick="SelectSurvey('\<%= draft.iddrafts %>\');"> <h1> <%= draft.title %> </h1 ><p><%= draft.timestamp.toDateString() %></p><p> <%= draft.note %> </p></div >;
+            <div class="survey-box" onclick="SelectSurvey('<%= draft.iddrafts %>');"> <h1> <%= draft.title %> </h1 ><p><%= draft.timestamp.toDateString() %></p><p> <%= draft.note %> </p></div >;
         <% })  %>
         
     </div>
@@ -43,7 +43,7 @@
 <script>
     var SelectSurvey = function (id)
     {
-        window.location = "/survey?id=" + id;
+        window.location = "/draftdetails?id=" + id;
     }
 </script>
 

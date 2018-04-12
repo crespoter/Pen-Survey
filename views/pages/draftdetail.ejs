@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Pen Survey</title>
+    <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="/stylesheets/createSurvey.css" rel="stylesheet" type="text/css" />
+	<link href="stylesheets/drafts.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="/stylesheets/sendbuttonstyle.css" />
+</head>
+<body>
+    <div class="header">
+        <br/>
+        <a href="/" class="logo">Pen Survey</a>
+        <a class="login " href="/">Active Surveys</a>
+        <a class="expiredsurveys " href="/expiredsurveys">Expired Surveys</a>
+        <a href="/drafts" class="createSurvey active">Drafts</a>
+        <a href="/logout" class="register">Logout</a>
+    </div>
+	<div class="container">
+		<form action ="" method = "post">
+			<div class="form-group">
+				<label>Title:</label>
+				<input type="text" class="form-control" name="title" value="<%= data.title %>">
+			</div>
+			<div class="form-group">
+				<label>Note:</label>
+				<input type="text" class="form-control" name="note" value="<%= data.note %>">
+			</div>
+			<div class="question-list">
+				<% for(var i in data.questions){ %>
+					<div class="well well-lg">
+						<div class="form-group">
+							<label>Question:</label>
+							<input type="text" class="form-control" name="questions[]" value="<%= data.questions[i].question_text %>"/>
+						</div>
+						<input type="hidden" name="choiceLength[]" value = "<%= Object.keys(data.questions[i].choices).length %>" />
+						<% for(var j in data.questions[i].choices){ %>
+							<div>
+								<input type="text" class="form-control choice_input" placeholder="Choice" name="choices[]" style="width:600px;display:inline" value="<%=data.questions[i].choices[j] %>"/>
+								<button type="button" class="btn btn-danger" onclick="deleteChoice(this);">X</button> 
+							</div>
+						<% } %>
+						<button class="btn btn-success add-choice" type="button" onclick="addOption(this)">Add Choice</button>
+						<button id="delete-question" class="btn btn-danger" type="button" onclick="deleteQuestion(this);">Delete Question</button>
+					</div>
+				<% } %>
+			</div>
+			<span class='pulse-button' style="display:block;margin-top:5%;margin-left:2%;height:80px;width:80px">Add</span>
+			<button class="button-two" style="position:fixed;margin-left:60%;top:80%"><span>Update</span></button>
+		</form>
+	</div>
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.2.1.js"
+        integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+        crossorigin="anonymous">
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script>
+	deleteQuestion = function(element){
+		$(element).parent().remove();
+	}
+	deleteChoice = function(element){
+		var numberOfElements =  $($(element).parent().siblings('input')[0]).val();
+		$($(element).parent().siblings('input')[0]).val(numberOfElements-1);
+		$(element).parent().remove();
+	}
+	addOption = function(element){
+		var numberOfElements =  $(element).siblings('input').val();
+		$($(element).siblings('input')).val(parseInt(numberOfElements)+1);
+		$(element).before(`
+			<div>
+				<input type="text" class="form-control choice_input" placeholder="Choice" name="choices[]" style="width:600px;display:inline"/><button type="button" class="btn btn-danger" onclick="deleteChoice(this);">X</button> 
+			</div>
+		`)
+	}
+	$(document).ready(function(){
+		$(".pulse-button").click(function(){
+			$(".question-list").append(`<div class="well well-lg">
+					<div class="form-group">
+						<label>Question:</label>
+						<input type="text" class="form-control" name="questions[]" />
+					</div>
+					<input type="hidden" name="choiceLength[]" value = "0" />
+					<button class="btn btn-success add-choice" type="button" onclick="addOption(this)">Add Choice</button>
+					<button id="delete-question" class="btn btn-danger" type="button" onclick="deleteQuestion(this);">Delete Question</button>
+			</div>`);
+		});
+		
+	});
+
+</script>
