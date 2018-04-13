@@ -540,14 +540,17 @@ app.get("/api/sendquestionnaire/:groupid", (req, res) => {
     var draftId = req.query.id;
     var groupId = req.params.groupid;
     var sql = "SELECT * FROM user_group WHERE group_id = " + groupId;
+    console.log(sql);
     con.query(sql, (err, result, fields) => {
         if (err) throw err;
         
         result.forEach((element) => {
             var sql = "SELECT * FROM drafts WHERE iddrafts = " + draftId;
+            console.log(sql);
             con.query(sql, (err, result, fields) => {
                 var draft = result[0];
-                var sql = "INSERT into questionnaire(idquestionnaire,title,creator_id,running,timestamppost,note) VALUES(0,'" + draft.title + "'," + draft.creator_id + ",1,now(),'" + draft.note + "')";
+                var sql = "INSERT into questionnaire(idquestionnaire,title,creator_id,running,timestamppost,note) VALUES("+draft.iddrafts + ",'" + draft.title + "'," + draft.creator_id + ",1,now(),'" + draft.note + "')";
+                console.log(sql);
                 con.query(sql, (err, result, fields) => {
                     if (err) throw err;
                     var sql = "INSERT into questionnaire_user(questionnaire_id,user_id) VALUES(" + result.insertId + "," + element.user_id + ")";
@@ -578,7 +581,7 @@ app.get("/api/getpermissions/:userid", (req, res) => {
 //DRAFTS####################################################################################################################
 
 app.get("/api/getdrafts/:userid", (req, res) => {
-    var sql = "SELECT * FROM drafts WHERE creator_id = " + req.params.userid;
+    var sql = "SELECT * FROM drafts WHERE creator_id = " + req.params.userid + " ORDER BY timestamp DESC";
     con.query(sql, function (err, result, fields) {
         if (err) throw err;
         res.json(result);
