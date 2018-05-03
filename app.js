@@ -481,6 +481,16 @@ app.get("/api/addresponse/:questionid", (req, res) => {
     });
 });
 
+app.get("/api/getresponses/:choiceid", (req, res) => {
+    var choiceId = req.params.choiceid;
+    var sql = "SELECT * FROM response WHERE response = '" + choiceId + "';";
+    con.query(sql, function (err, result, fields) {
+        if (err) throw err;
+        retObj = { result: result, count: result.length };
+        res.json(retObj);
+    });
+});
+
 app.get("/api/getgroups", (req, res) => {
     var sql = "SELECT * FROM groups";
     con.query(sql, function (err, result, fields) {
@@ -548,12 +558,19 @@ app.get("/api/sendquestionnaire/:groupid", (req, res) => {
             var sql = "SELECT * FROM drafts WHERE iddrafts = " + draftId;
             console.log(sql);
             con.query(sql, (err, result, fields) => {
+                var sql = "DELETE FROM drafts WHERE iddrafts = " + draftId;
+                console.log(sql);
+                con.query(sql, (err, result, fields) => {
+                    if (err) throw err;
+                });
+
                 var draft = result[0];
                 var sql = "INSERT into questionnaire(idquestionnaire,title,creator_id,running,timestamppost,note) VALUES("+draft.iddrafts + ",'" + draft.title + "'," + draft.creator_id + ",1,now(),'" + draft.note + "')";
                 console.log(sql);
                 con.query(sql, (err, result, fields) => {
                     if (err) throw err;
                     var sql = "INSERT into questionnaire_user(questionnaire_id,user_id) VALUES(" + result.insertId + "," + element.user_id + ")";
+                    console.log(sql);
                     con.query(sql, (err, result, fields) => {
                         if (err) throw err;
                     });
@@ -585,5 +602,50 @@ app.get("/api/getdrafts/:userid", (req, res) => {
     con.query(sql, function (err, result, fields) {
         if (err) throw err;
         res.json(result);
+    });
+});
+
+
+
+//GET ALL DETAILS
+
+
+app.get('/api/getcompletechoicedetails/:qid', (req, res) => {
+    retJson = {};
+    var sql = "SELECT * FROM choices WHERE question_id = " + req.params.qid;
+    con.query(sql, (err, result, fields) => {
+        if (err) throw err;
+        var sql = "SELECT * FROM response WHERE ";
+        for (var i = 0; i < result.length; i++){
+            if (i != (result.length - 1)) {
+                sql += "response = " + result[i].idchoices + " OR ";
+            }
+            else
+            {
+                sql += "response = " + result[i].idchoices;
+            }
+        }
+        console.log(sql);
+        retJson = result;
+        con.query(sql, (err, result, fields) => {
+            if (result == undefined) {
+                for (var i = 0; i < retJson.length; i++) {
+                    retJson[i].responseChosen = 0;
+                }
+            }
+            else {
+                for (var i = 0; i < retJson.length; i++) {
+                    retJson[i].responseChosen = 0;
+                    for (var j = 0; j < result.length; j++) {
+                        if (parseInt(result[j].response) == retJson[i].idchoices) {
+                            retJson[i].responseChosen++;
+                        }
+                    }
+
+                }
+            }
+            res.json(retJson);
+        });
+
     });
 });
