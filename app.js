@@ -549,6 +549,9 @@ app.get("/api/getchoices/:id", (req, res) => {
 app.get("/api/sendquestionnaire/:groupid", (req, res) => {
     var draftId = req.query.id;
     var groupId = req.params.groupid;
+    var forcedResponse = req.query.forcedResponse;
+    var anonymous = req.query.anonymous;
+
     var sql = "SELECT * FROM user_group WHERE group_id = " + groupId;
     console.log(sql);
     con.query(sql, (err, result, fields) => {
@@ -565,12 +568,11 @@ app.get("/api/sendquestionnaire/:groupid", (req, res) => {
                 });
 
                 var draft = result[0];
-                var sql = "INSERT into questionnaire(idquestionnaire,title,creator_id,running,timestamppost,note) VALUES("+draft.iddrafts + ",'" + draft.title + "'," + draft.creator_id + ",1,now(),'" + draft.note + "')";
-                console.log(sql);
+                var sql = "INSERT into questionnaire(idquestionnaire,title,creator_id,running,timestamppost,note,forcedResponse,anonymous) VALUES(" + draft.iddrafts + ",'" + draft.title + "'," + draft.creator_id + ",1,now(),'" + draft.note + "'," + forcedResponse + "," + anonymous+")";
+
                 con.query(sql, (err, result, fields) => {
                     if (err) throw err;
                     var sql = "INSERT into questionnaire_user(questionnaire_id,user_id) VALUES(" + result.insertId + "," + element.user_id + ")";
-                    console.log(sql);
                     con.query(sql, (err, result, fields) => {
                         if (err) throw err;
                     });
