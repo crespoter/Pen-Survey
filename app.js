@@ -641,11 +641,9 @@ app.get('/api/getcompletechoicedetails/:qid', (req, res) => {
                             retJson[i].responseChosen++;
                         }
                     }
-
                 }
             }
             res.json(retJson);
         });
-
     });
 });
