@@ -4,6 +4,7 @@ var nodemailer = require('nodemailer');
 var session = require('express-session');
 var mysql = require('mysql');
 var moment = require('moment');
+var xl = require('excel4node');
 var app = express();
 const  pageSize = 10;
 
@@ -217,6 +218,48 @@ app.get('/expiredsurveys', (req, res) => {
         res.render('pages/login.ejs', { error: '' });
 });
 
+app.get('/downloadExcel/:questionnaireId', (req, res) => {
+    ssn = req.session;
+    if (ssn.userLoggedin == undefined || ssn.userLoggedin == false)
+        res.redirect('/');
+    else {
+        var questionnaireId = req.params.questionnaireId;
+        var sql = "SELECT * FROM question JOIN response JOIN choices JOIN user WHERE question.idquestion=response.question_id AND question.idquestion=choices.question_id AND response.user_id=user.idUser AND response.response=choices.idchoices AND question.questionnaire_id=" + questionnaireId;
+        con.query(sql, function (err, result, fields) {
+            if (err) {
+                throw err;
+            }
+            var wb = new xl.Workbook({
+                'headerFooter': {
+                    'evenFooter': String,
+                    'evenHeader': String,
+                    'firstFooter': String
+                }
+            });
+            var ws = wb.addWorksheet('Response Details');
+            var style = wb.createStyle({
+                font: {
+                    size: 12
+                },
+                numberFormat: '$#,##0.00; ($#,##0.00); -'
+            });
+            /*
+                question , respondent , response
+            */
+            ws.cell(1, 1).string("QUESTION").style({ font: {size:14}});
+            ws.cell(1, 2).string("RESPONDENT").style({ font: { size: 14 } });
+            ws.cell(1, 3).string("RESPONSE").style({ font: { size: 14 } });
+
+            for (var i = 0; i < result.length; i++)
+            {
+                ws.cell(i + 2, 1).string(result[i].question_text).style(style);
+                ws.cell(i + 2, 2).string(result[i].username).style(style);
+                ws.cell(i + 2, 3).string(result[i].choice).style(style);
+            }
+            wb.write('response.xlsx', res);
+        });
+    }
+});
 
 app.get('/drafts', (req, res) => {
     ssn = req.session;

@@ -27,6 +27,8 @@
         <a href="/logout" class="register">Logout</a>
     </div>
 	<div class = "container">
+			<a href="/downloadExcel/<%= data.id %>"><button class="btn btn-primary">Download Excel</button></a>
+
 		<h1>Title : <%=data.title %></h1>
 		<h2> Note : <%= data.note %>
 		<h2> Posted on <%=data.datetime %> </h2>
